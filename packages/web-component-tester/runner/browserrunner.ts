@@ -16,7 +16,7 @@ import * as chalk from 'chalk';
 import * as cleankill from 'cleankill';
 import * as _ from 'lodash';
 import * as wd from 'wd';
-import {Config} from './config';
+import { Config } from './config';
 
 export interface Stats {
   status: string;
@@ -67,8 +67,8 @@ export class BrowserRunner {
    *     Safari webdriver, which can only have one instance running at once.
    */
   constructor(
-      emitter: NodeJS.EventEmitter, def: BrowserDef, options: Config,
-      url: string, waitFor?: Promise<void>) {
+    emitter: NodeJS.EventEmitter, def: BrowserDef, options: Config,
+    url: string, waitFor?: Promise<void>) {
     this.emitter = emitter;
     this.def = def;
     this.options = options;
@@ -76,7 +76,7 @@ export class BrowserRunner {
     this.emitter = emitter;
     this.url = url;
 
-    this.stats = {status: 'initializing'};
+    this.stats = { status: 'initializing' };
 
     this.donePromise = new Promise<void>((resolve, reject) => {
       this._resolve = resolve;
@@ -88,7 +88,7 @@ export class BrowserRunner {
       this.browser = wd.remote(this.def.url);
 
       // never retry selenium commands
-      this.browser.configureHttp({retries: -1});
+      this.browser.configureHttp({ retries: -1 });
 
 
       cleankill.onInterrupt(() => {
@@ -109,20 +109,20 @@ export class BrowserRunner {
       this.browser.on('http', (method: any, path: any, data: any) => {
         if (data) {
           emitter.emit(
-              'log:debug',
-              this.def,
-              chalk.magenta(method),
-              chalk.cyan(path),
-              data);
+            'log:debug',
+            this.def,
+            chalk.magenta(method),
+            chalk.cyan(path),
+            data);
         } else {
           emitter.emit(
-              'log:debug', this.def, chalk.magenta(method), chalk.cyan(path));
+            'log:debug', this.def, chalk.magenta(method), chalk.cyan(path));
         }
       });
 
       this.browser.on('connection', (code: any, message: any, error: any) => {
         emitter.emit(
-            'log:warn', this.def, 'Error code ' + code + ':', message, error);
+          'log:warn', this.def, 'Error code ' + code + ':', message, error);
       });
 
       this.emitter.emit('browser-init', this.def, this.stats);
@@ -157,12 +157,12 @@ export class BrowserRunner {
         try {
           const data = JSON.parse(error.data);
           if (data.value && data.value.message &&
-              /Failed to connect to SafariDriver/i.test(data.value.message)) {
+            /Failed to connect to SafariDriver/i.test(data.value.message)) {
             error = 'Until Selenium\'s SafariDriver supports ' +
-                'Safari 6.2+, 7.1+, & 8.0+, you must\n' +
-                'manually install it. Follow the steps at:\n' +
-                'https://github.com/SeleniumHQ/selenium/' +
-                'wiki/SafariDriver#getting-started';
+              'Safari 6.2+, 7.1+, & 8.0+, you must\n' +
+              'manually install it. Follow the steps at:\n' +
+              'https://github.com/SeleniumHQ/selenium/' +
+              'wiki/SafariDriver#getting-started';
           }
         } catch (error) {
           // Show the original error.
@@ -232,7 +232,7 @@ export class BrowserRunner {
     }
 
     this.emitter.emit(
-        'browser-end', this.def, error, this.stats, this.sessionId, browser);
+      'browser-end', this.def, error, this.stats, this.sessionId, browser);
 
     // Nothing to quit.
     if (!this.sessionId) {
@@ -242,16 +242,18 @@ export class BrowserRunner {
     browser.quit((quitError) => {
       if (quitError) {
         this.emitter.emit(
-            'log:warn',
-            this.def,
-            'Failed to quit:',
-            quitError.data || quitError);
+          'log:warn',
+          this.def,
+          'Failed to quit:',
+          quitError.data || quitError);
       }
-      if (error) {
-        this._reject(error);
-      } else {
-        this._resolve();
-      }
+      setTimeout(() => { // https://github.com/Polymer/tools/issues/3246
+        if (error) {
+          this._reject(error);
+        } else {
+          this._resolve();
+        }
+      }, 100);
     });
   }
 
